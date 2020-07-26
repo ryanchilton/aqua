@@ -31,6 +31,12 @@
 #define WATER_SENSOR_1_PIN 16
 #define WATER_SENSOR_2_PIN 17
 
+#define FEEDER_PERIOD_MS    10000
+#define FEEDER_DURATION_MS  1000
+#define PUMP_1_PERIOD_MS    20000
+#define PUMP_1_DURATION_MS  10000
+#define PUMP_2_DURATION_MS  10000
+
 
 
 OneWire oneWire_1(TEMP_1_PIN);
@@ -38,6 +44,10 @@ OneWire oneWire_2(TEMP_2_PIN);
 DS18B20 temp_sens_1(&oneWire_1);
 DS18B20 temp_sens_2(&oneWire_2);
 
+
+TimeTrigger feeder_timer(FEEDER_PERIOD_MS, FEEDER_DURATION_MS);
+TimeTrigger pump_1_timer(PUMP_1_PERIOD_MS, PUMP_1_DURATION_MS);
+Timer       pump_2_timer(PUMP_2_DURATION_MS);
 
 void setup() {
   // Initialize serial and wait for port to open:
@@ -82,8 +92,11 @@ void loop() {
   ArduinoCloud.update();
 
   // read water sensor
-  int water_sensor_voltage = analogRead(WATER_SENSOR_1_PIN);
-  water_sensor = water_sensor_voltage * 100.0 / 1024.0;
+  int water_sensor_1_voltage = analogRead(WATER_SENSOR_1_PIN);
+  water_sensor = water_sensor_1_voltage * 100.0 / 1024.0;
+
+  int water_sensor_2_voltage = analogRead(WATER_SENSOR_2_PIN);
+  float water_sensor_2 = water_sensor_2_voltage * 100.0 / 1024.0;
 
   // read tempurature sensors
   temp_sens_1.requestTemperatures();
@@ -93,6 +106,15 @@ void loop() {
   temp_sens_2.requestTemperatures();
   while (!temp_sens_2.isConversionComplete());  // wait until sensor is ready
   temp_2 = temp_sens_2.getTempC();
+
+  if(water_sensor_2 > 40)
+  {
+    pump_2_timer.start();
+  }
+  
+  //digitalWrite(FEEDER_RELAY_PIN, feeder_timer.isActive());
+  //digitalWrite(PUMP_1_RELAY_PIN, pump_1_timer.isActive());
+  //digitalWrite(PUMP_2_RELAY_PIN, pump_2_timer.isActive());
   
   delay(1000);
 }
