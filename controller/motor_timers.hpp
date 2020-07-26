@@ -15,6 +15,11 @@ public:
     end_time_ms = millis() + duration_ms;
   }
 
+  void forceStop()
+  {
+    end_time_ms = millis();
+  }
+
   bool isActive()
   {
     return millis() < end_time_ms;
